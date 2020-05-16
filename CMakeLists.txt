@@ -396,7 +396,7 @@ add_executable(tutorial14_render_to_texture
 	tutorial14_render_to_texture/StandardShadingRTT.vertexshader
 	tutorial14_render_to_texture/StandardShadingRTT.fragmentshader
 	tutorial14_render_to_texture/Passthrough.vertexshader
-	tutorial14_render_to_texture/WobblyTexture.fragmentshader
+	tutorial14_render_to_texture/MotionBlur.fragmentshader
 )
 target_link_libraries(tutorial14_render_to_texture
 	${ALL_LIBS}
