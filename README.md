@@ -18,6 +18,6 @@ INSTRUCTIONS:
 To compile, use cmake-gui. Put "Final-Graphics-Project" as the source, and "Final-Graphics-Project/build" as 
 the build.
 Then click Configure and Generate. Open the Tutorials.sln executable in the "build" directory.
-Once Visual Studio loads, set the playground directory as the startup directory.
+Once Visual Studio loads, set the "tutorial14" directory as the startup directory.
 Then build it inside VS.
-Lastly, go to the playground and start the playground directory executable.
+Lastly, go to the "tutorial14" directory and start the "tutorial14" executable.
