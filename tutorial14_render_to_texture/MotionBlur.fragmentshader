@@ -4,18 +4,16 @@
 
 #version 330 core
 
-// Input from vertexshaders
+// Input from Passthrough vertexshader
 in vec2 UV;
 in vec3 Position_worldspace;
 in vec3 Normal_cameraspace;
-in vec3 EyeDirection_cameraspace;
-in vec3 LightDirection_cameraspace;
 in vec3 ViewProjection_Matrix;
 
 out vec3 color;
 
 // Data from tutorial.ccp
-//uniform sampler2D renderedTexture;
+uniform sampler2D renderedTexture;
 uniform sampler2D depthTexture;
 uniform float time;
 
@@ -32,7 +30,7 @@ void main(){
 	// Convert to nonhomogeneous points [-1,1] by dividing by w.
 	previousPos /= previousPos.w;
 	// Use this frame's position and last frame's to compute the pixel
-	vec2 velocity = (currentPos - previousPos)/2.f;
+	vec2 velocity = (currentPos - previousPos).xy;
 
 	// Sample count that we want (of our choosing?)
 	int samples = 9;

@@ -91,7 +91,6 @@ int main( void )
 
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-	GLuint ProjectionMatrixID = glGetUniformLocation(programID, "P");
 	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 
@@ -176,7 +175,7 @@ int main( void )
 	// Alternative : Depth texture. Slower, but you can sample it later in your shader
 	GLuint depthTexture;
 	glGenTextures(1, &depthTexture);
-	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	// glBindTexture(GL_TEXTURE_2D, depthTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT24, 1024, 768, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
@@ -187,12 +186,12 @@ int main( void )
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
 
 	// Depth texture alternative : maybe level (last param) should be 1?
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 1);
 
 
 	// Set the list of draw buffers.
-	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+	GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
+	glDrawBuffers(2, DrawBuffers); // "2" is the size of DrawBuffers
 
 	// Always check that our framebuffer is ok
 	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -219,7 +218,12 @@ int main( void )
 	GLuint texID = glGetUniformLocation(quad_programID, "renderedTexture");
 	GLuint depthID = glGetUniformLocation(quad_programID, "depthTexture");
 	GLuint timeID = glGetUniformLocation(quad_programID, "time");
-    
+
+	// For depthTexture
+	GLuint quad_MatrixID = glGetUniformLocation(quad_programID, "MVP");
+	GLuint quad_ProjectionMatrixID = glGetUniformLocation(quad_programID, "P");
+	GLuint quad_ViewMatrixID = glGetUniformLocation(quad_programID, "V");
+	GLuint quad_ModelMatrixID = glGetUniformLocation(quad_programID, "M");    
 	
 	do{
 		// Render to our framebuffer
@@ -244,7 +248,6 @@ int main( void )
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
-		glUniformMatrix4fv(ProjectionMatrixID, 1, GL_FALSE, &ProjectionMatrix[0][0]);
 
 		glm::vec3 lightPos = glm::vec3(4,4,4);
 		glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
@@ -325,13 +328,20 @@ int main( void )
 		// Set our "renderedTexture" sampler to use Texture Unit 0
 		glUniform1i(texID, 0);
 		
-		// Bind depth texture in Texture Unit 0
-		glActiveTexture(GL_TEXTURE0);
+		// Bind depth texture in Texture Unit 1
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, depthTexture);
-		// Set our "depthTexture" sampler to use Texture Unit 0
-		glUniform1i(depthID, 0);
+		// Set our "depthTexture" sampler to use Texture Unit 1
+		glUniform1i(depthID, 1);
 
 		glUniform1f(timeID, (float)(glfwGetTime()*10.0f) );
+
+		// Send our transformation to the currently bound shader, 
+		// in the "MVP" uniform
+		glUniformMatrix4fv(quad_MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniformMatrix4fv(quad_ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+		glUniformMatrix4fv(quad_ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+		glUniformMatrix4fv(quad_ProjectionMatrixID, 1, GL_FALSE, &ProjectionMatrix[0][0]);
 
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
@@ -343,6 +353,30 @@ int main( void )
 			GL_FALSE,           // normalized?
 			0,                  // stride
 			(void*)0            // array buffer offset
+		);
+
+		// 2nd attribute buffer : UVs
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+		glVertexAttribPointer(
+			1,                                // attribute
+			2,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
+		// 3rd attribute buffer : normals
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		glVertexAttribPointer(
+			2,                                // attribute
+			3,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
 		);
 
 		// Draw the triangles !
