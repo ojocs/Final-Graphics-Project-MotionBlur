@@ -91,6 +91,7 @@ int main( void )
 
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+	GLuint ProjectionMatrixID = glGetUniformLocation(programID, "P");
 	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 
@@ -172,21 +173,21 @@ int main( void )
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
 
-	//// Alternative : Depth texture. Slower, but you can sample it later in your shader
-	//GLuint depthTexture;
-	//glGenTextures(1, &depthTexture);
-	//glBindTexture(GL_TEXTURE_2D, depthTexture);
-	//glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT24, 1024, 768, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	// Alternative : Depth texture. Slower, but you can sample it later in your shader
+	GLuint depthTexture;
+	glGenTextures(1, &depthTexture);
+	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT24, 1024, 768, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// Set "renderedTexture" as our colour attachement #0
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
 
-	//// Depth texture alternative : 
-	//glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
+	// Depth texture alternative : maybe level (last param) should be 1?
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
 
 
 	// Set the list of draw buffers.
@@ -216,6 +217,7 @@ int main( void )
 	// Create and compile our GLSL program from the shaders
 	GLuint quad_programID = LoadShaders( "Passthrough.vertexshader", "MotionBlur.fragmentshader" );
 	GLuint texID = glGetUniformLocation(quad_programID, "renderedTexture");
+	GLuint depthID = glGetUniformLocation(quad_programID, "depthTexture");
 	GLuint timeID = glGetUniformLocation(quad_programID, "time");
     
 	
@@ -242,6 +244,7 @@ int main( void )
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+		glUniformMatrix4fv(ProjectionMatrixID, 1, GL_FALSE, &ProjectionMatrix[0][0]);
 
 		glm::vec3 lightPos = glm::vec3(4,4,4);
 		glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
@@ -321,6 +324,12 @@ int main( void )
 		glBindTexture(GL_TEXTURE_2D, renderedTexture);
 		// Set our "renderedTexture" sampler to use Texture Unit 0
 		glUniform1i(texID, 0);
+		
+		// Bind depth texture in Texture Unit 0
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depthTexture);
+		// Set our "depthTexture" sampler to use Texture Unit 0
+		glUniform1i(depthID, 0);
 
 		glUniform1f(timeID, (float)(glfwGetTime()*10.0f) );
 
@@ -360,6 +369,7 @@ int main( void )
 
 	glDeleteFramebuffers(1, &FramebufferName);
 	glDeleteTextures(1, &renderedTexture);
+	glDeleteTextures(1, &depthTexture);
 	glDeleteRenderbuffers(1, &depthrenderbuffer);
 	glDeleteBuffers(1, &quad_vertexbuffer);
 	glDeleteVertexArrays(1, &VertexArrayID);
