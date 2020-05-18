@@ -1,14 +1,14 @@
 // This file was originally titled "WobblyTexture". It has been modified to implement motion blur.
 // Implementation is based off algorithms described here: 
 // https://developer.nvidia.com/gpugems/gpugems3/part-iv-image-effects/chapter-27-motion-blur-post-processing-effect
-
+/*
 #version 330 core
 
 // Input from Passthrough vertexshader
 in vec2 UV;
-in vec3 Position_worldspace;
-in vec3 Normal_cameraspace;
-in vec3 ViewProjection_Matrix;
+//in vec3 Position_worldspace;
+//in vec3 Normal_cameraspace;
+//in vec3 ViewProjection_Matrix;
 
 out vec3 color;
 
@@ -18,6 +18,7 @@ uniform sampler2D depthTexture;
 uniform float time;
 
 void main(){
+	
 	// Get the depth buffer value at this pixel.
 	float zOverW = texture(depthTexture, UV);
 	
@@ -25,7 +26,7 @@ void main(){
 	vec4 currentPos = vec4(UV.x * 2 - 1, (1 - UV.y) * 2 - 1, zOverW, 1);
 
 	// Use the world position, and transform by the previous view-projection matrix.
-	vec4 previousPos = vec4((Position_worldspace * ViewProjectionMatrix), 1);
+	vec4 previousPos = vec4((Position_worldspace * ViewProjection_Matrix), 1);
 	// Convert to nonhomogeneous points [-1,1] by dividing by w.
 	previousPos /= previousPos.w;
 	// Use this frame's position and last frame's to compute the pixel
@@ -44,7 +45,24 @@ void main(){
 		init_color += currentColor;
 	}
 	// Average all of the samples to get the final blur color.
-	init_color /= samples;
+	init_color.x /= samples;
+	init_color.y /= samples;
+	init_color.z /= samples;
+	init_color.w /= samples;
 	// convert to vec3
 	color = init_color.xyz;
+}*/
+
+#version 330 core
+
+in vec2 UV;
+
+out vec3 color;
+
+uniform sampler2D renderedTexture;
+uniform sampler2D depthTexture;
+uniform float time;
+
+void main(){
+    color = texture( renderedTexture, UV + 0.005*vec2( sin(time+1024.0*UV.x),cos(time+768.0*UV.y)) ).xyz;
 }
