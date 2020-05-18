@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <vector>
 
+// Debugging stuff
+#include <iostream>
+using namespace std;
+
 // Include GLEW
 #include <GL/glew.h>
 
@@ -22,7 +26,8 @@ using namespace glm;
 #include <common/vboindexer.hpp>
 
 int main( void )
-{
+{		cout<<"----------AQUI BEGIN MAIN-----------"<<endl;
+
 	// Initialise GLFW
 	if( !glfwInit() )
 	{
@@ -139,7 +144,8 @@ int main( void )
 	glUseProgram(programID);
 	GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
-
+		cout<<"----------AQUI BEFORE FRAMEBUFFER ASSIGNMENTS-----------"<<endl;
+cout<<"----------AQUI CHECKING FRAMEBUFFER IS OK (1 == not ok) : " << (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) << "-----------"<<endl;
 	// ---------------------------------------------
 	// Render to Texture - specific code begins here
 	// ---------------------------------------------
@@ -171,32 +177,38 @@ int main( void )
 	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+		cout<<"----------AQUI BEFORE MAKING DEPTHTEXTURE-----------"<<endl;
 
 	// Alternative : Depth texture. Slower, but you can sample it later in your shader
 	GLuint depthTexture;
 	glGenTextures(1, &depthTexture);
-	// glBindTexture(GL_TEXTURE_2D, depthTexture);
+	glBindTexture(GL_TEXTURE_2D, depthTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT24, 1024, 768, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
+		cout<<"----------AQUI BEFORE ADDING RENDEREDTEXTURE TO FRAMEBUFFER-----------"<<endl;
+cout<<"----------AQUI CHECKING FRAMEBUFFER IS OK (1 == not ok) : " << (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) << "-----------"<<endl;
 	// Set "renderedTexture" as our colour attachement #0
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+		cout<<"----------AQUI BEFORE ADDING DEPTH TEXTURE TO FRAMEBUFFER-----------"<<endl;
 
 	// Depth texture alternative : maybe level (last param) should be 1?
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 1);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
 
+		cout<<"----------AQUI BEFORE MAKING DRAWBUFFERS-----------"<<endl;
 
 	// Set the list of draw buffers.
 	GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
 	glDrawBuffers(2, DrawBuffers); // "2" is the size of DrawBuffers
 
+		cout<<"----------AQUI CHECKING FRAMEBUFFER IS OK (1 == not ok) : " << (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) << "-----------"<<endl;
+
 	// Always check that our framebuffer is ok
 	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		return false;
-
+	cout<<"--------AQUI OK!!-------------"<<endl;
 	
 	// The fullscreen quad's FBO
 	static const GLfloat g_quad_vertex_buffer_data[] = { 
@@ -212,12 +224,18 @@ int main( void )
 	glGenBuffers(1, &quad_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+		cout<<"----------AQUI BEFORE ASSIGNING TO QUAD_PROGRAMID-----------"<<endl;
 
 	// Create and compile our GLSL program from the shaders
 	GLuint quad_programID = LoadShaders( "Passthrough.vertexshader", "MotionBlur.fragmentshader" );
+	cout<<"-----------LOADED SHADERS-------------"<<endl;
 	GLuint texID = glGetUniformLocation(quad_programID, "renderedTexture");
+	cout<<"-------TEXID DONE---------"<<endl;
 	GLuint depthID = glGetUniformLocation(quad_programID, "depthTexture");
+	cout<<"---------DEPTHID DONE---------------"<<endl;
 	GLuint timeID = glGetUniformLocation(quad_programID, "time");
+
+	cout<<"------------AQUI AFTER ASSIGNING QUAD_PROGRAMID /// BEFORE MATRIXID ASSIGNEMNTS----------------"<<endl;
 
 	// For depthTexture
 	GLuint quad_MatrixID = glGetUniformLocation(quad_programID, "MVP");
@@ -225,6 +243,8 @@ int main( void )
 	GLuint quad_ViewMatrixID = glGetUniformLocation(quad_programID, "V");
 	GLuint quad_ModelMatrixID = glGetUniformLocation(quad_programID, "M");    
 	
+			cout<<"----------AQUI BEFORE DO ACTUAL RENDERING-----------"<<endl;
+
 	do{
 		// Render to our framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
@@ -322,17 +342,21 @@ int main( void )
 		// Use our shader
 		glUseProgram(quad_programID);
 
+		cout<<"----------AQUI USE QUAD_PROGRAMID-----------"<<endl;
+
 		// Bind our texture in Texture Unit 0
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, renderedTexture);
 		// Set our "renderedTexture" sampler to use Texture Unit 0
 		glUniform1i(texID, 0);
-		
+				cout<<"----------AQUI BOUND RENDEREDTEXTURE-----------"<<endl;
+
 		// Bind depth texture in Texture Unit 1
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, depthTexture);
 		// Set our "depthTexture" sampler to use Texture Unit 1
 		glUniform1i(depthID, 1);
+		cout<<"----------AQUI BOUND DEPTHTEXTURE-----------"<<endl;
 
 		glUniform1f(timeID, (float)(glfwGetTime()*10.0f) );
 
