@@ -234,14 +234,6 @@ cout<<"----------AQUI CHECKING FRAMEBUFFER IS OK (1 == not ok) : " << (glCheckFr
 	GLuint depthID = glGetUniformLocation(quad_programID, "depthTexture");
 	cout<<"---------DEPTHID DONE---------------"<<endl;
 	GLuint timeID = glGetUniformLocation(quad_programID, "time");
-
-	cout<<"------------AQUI AFTER ASSIGNING QUAD_PROGRAMID /// BEFORE MATRIXID ASSIGNEMNTS----------------"<<endl;
-
-	// For depthTexture
-	GLuint quad_MatrixID = glGetUniformLocation(quad_programID, "MVP");
-	GLuint quad_ProjectionMatrixID = glGetUniformLocation(quad_programID, "P");
-	GLuint quad_ViewMatrixID = glGetUniformLocation(quad_programID, "V");
-	GLuint quad_ModelMatrixID = glGetUniformLocation(quad_programID, "M");    
 	
 			cout<<"----------AQUI BEFORE DO ACTUAL RENDERING-----------"<<endl;
 
@@ -359,13 +351,6 @@ cout<<"----------AQUI CHECKING FRAMEBUFFER IS OK (1 == not ok) : " << (glCheckFr
 		cout<<"----------AQUI BOUND DEPTHTEXTURE-----------"<<endl;
 
 		glUniform1f(timeID, (float)(glfwGetTime()*10.0f) );
-
-		// Send our transformation to the currently bound shader, 
-		// in the "MVP" uniform
-		glUniformMatrix4fv(quad_MatrixID, 1, GL_FALSE, &MVP[0][0]);
-		glUniformMatrix4fv(quad_ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-		glUniformMatrix4fv(quad_ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
-		glUniformMatrix4fv(quad_ProjectionMatrixID, 1, GL_FALSE, &ProjectionMatrix[0][0]);
 
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);

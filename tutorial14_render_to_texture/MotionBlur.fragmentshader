@@ -20,7 +20,7 @@ uniform float time;
 void main(){
 	
 	// Get the depth buffer value at this pixel.
-	float zOverW = texture(depthTexture, UV);
+	vec4 zOverW = texture(depthTexture, UV);
 	
 	// the viewport position at this pixel in the range -1 to 1.
 	vec4 currentPos = vec4(UV.x * 2 - 1, (1 - UV.y) * 2 - 1, zOverW, 1);
@@ -56,6 +56,9 @@ void main(){
 #version 330 core
 
 in vec2 UV;
+in vec3 Position_worldspace;
+in vec3 Normal_cameraspace;
+in vec3 ViewProjection_Matrix;
 
 out vec3 color;
 
@@ -64,5 +67,15 @@ uniform sampler2D depthTexture;
 uniform float time;
 
 void main(){
-    color = texture( renderedTexture, UV + 0.005*vec2( sin(time+1024.0*UV.x),cos(time+768.0*UV.y)) ).xyz;
+	// Get the depth buffer value at this pixel.
+	float zOverW = texture(depthTexture, UV).z;
+
+	// the viewport position at this pixel in the range -1 to 1.
+	vec4 currentPos = vec4(UV.x * 2 - 1, (1 - UV.y) * 2 - 1, zOverW, 1);
+	// Use this frame's position and last frame's to compute the pixel
+	vec2 velocity = (currentPos.xy - Position_worldspace.xy);
+
+	
+
+    color = texture( renderedTexture, UV ).xyz;
 }
