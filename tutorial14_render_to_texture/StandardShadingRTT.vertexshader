@@ -10,7 +10,6 @@ out vec2 UV;
 out vec3 Position_worldspace;
 out vec3 Normal_cameraspace;
 out vec3 EyeDirection_cameraspace;
-out vec3 ViewProjection_Matrix;
 out vec3 LightDirection_cameraspace;
 
 // Values that stay constant for the whole mesh.
@@ -40,8 +39,5 @@ void main(){
 	
 	// UV of the vertex. No special space for this one.
 	UV = vertexUV;
-
-	// View-Projection Matrix, simply Projection * View.
-	//ViewProjection_Matrix = (V).xyz;
 }
 

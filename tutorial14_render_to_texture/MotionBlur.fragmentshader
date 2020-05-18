@@ -1,6 +1,10 @@
 // This file was originally titled "WobblyTexture". It has been modified to implement motion blur.
 // Implementation is based off algorithms described here: 
 // https://developer.nvidia.com/gpugems/gpugems3/part-iv-image-effects/chapter-27-motion-blur-post-processing-effect
+
+
+// WHAT WE WANTED TO DO, BUT OPENGL AND GLSL WEREN'T HAPPY WITH.
+// WHAT WE ENDED UP DOING AFTER THIS COMMENTED OUT CODE (LINE 62)
 /*
 #version 330 core
 
@@ -53,12 +57,12 @@ void main(){
 	color = init_color.xyz;
 }*/
 
+
+// WHAT WE ENDED UP DOING, IDK REALLY BUT IT'S FUNNY/KINDA COOL
 #version 330 core
 
 in vec2 UV;
-in vec3 Position_worldspace;
-in vec3 Normal_cameraspace;
-in vec3 ViewProjection_Matrix;
+in vec3 Position_modelspace;
 
 out vec3 color;
 
@@ -73,7 +77,7 @@ void main(){
 	// the viewport position at this pixel in the range -1 to 1.
 	vec4 currentPos = vec4(UV.x * 2 - 1, (1 - UV.y) * 2 - 1, zOverW, 1);
 	// Use this frame's position and last frame's to compute the pixel
-	vec2 velocity = (currentPos.xy - Position_worldspace.xy);
+	vec2 velocity = (currentPos.xy - Position_modelspace.xy);
 
 	// Our position
 	vec2 pos = UV;
@@ -93,6 +97,4 @@ void main(){
 	init_color /= samples;
 	// convert to vec3
 	color = init_color.xyz;
-
-    //color = texture( renderedTexture, UV ).xyz;
 }
