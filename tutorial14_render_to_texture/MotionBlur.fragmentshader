@@ -75,7 +75,24 @@ void main(){
 	// Use this frame's position and last frame's to compute the pixel
 	vec2 velocity = (currentPos.xy - Position_worldspace.xy);
 
-	
+	// Our position
+	vec2 pos = UV;
+	// Get the initial color at this pixel.
+	vec3 init_color = texture(renderedTexture, pos).xyz;
+	// We choose this?
+	int samples = 9;
 
-    color = texture( renderedTexture, UV ).xyz;
+	pos += velocity;
+	for(int i = 1; i < samples; ++i, pos += velocity) {
+		// Sample the color buffer along the velocity vector.
+		vec3 currentColor = texture(renderedTexture, pos).xyz;
+		// Add the current color to our color sum.
+		init_color += currentColor;
+	}
+	// Average all of the samples to get the final blur color.
+	init_color /= samples;
+	// convert to vec3
+	color = init_color.xyz;
+
+    //color = texture( renderedTexture, UV ).xyz;
 }
